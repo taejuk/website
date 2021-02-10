@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+    </head>
+    <body>
+        <div>
+            <div><%= post.title %></div>
+            <div><%= post.body %></div>
+            <% if (post.author == user) { %>
+                <a href="/modifyPost/<%= post.board_id %>">수정하기</a>
+            <% } %>
+        </div>
+        <a href="/postList">뒤로 가기</a>
+        <br>
+        <form action="/comment/<%= post.board_id %>" method="POST">
+            <div>
+                <input type="text" name="comment" placeholder="댓글을 입력하세요.">
+            </div>
+            <div>
+                <input type="submit" value="댓글 남기기">
+            </div>
+        </form>
+        <div id="comments">
+            <div>
+            <% for(var i = 0; i < comments.length ; i++) { %>
+                <p><%= comments[i].text %>
+                <% if (comments[i].user_id == user) { %>
+                    <a href="/comment/delete/<%= comments[i]._id %>">삭제하기</a>
+                <% } %>
+            </p>
+                <% } %>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8">
+    </head>
+    <body>
+        <div style="color: red"><%= error %></div>
+        <form action="/createPost" method="POST">
+            <input type="text" name="title" placeholder="제목을 입력해주세요." autocomplete="off">
+            <br>
+            <textarea name="body" placeholder="내용을 입력해주세요." autocomplete="off"></textarea>
+            <br>
+            <input type="submit" value="글쓰기">
+        </form>
+    </body>
+</html>
