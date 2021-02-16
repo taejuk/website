@@ -22,15 +22,10 @@
             </div>
         </form>
         <div id="comments">
-            <div>
-            <% for(var i = 0; i < comments.length ; i++) { %>
-                <p><%= comments[i].text %>
-                <% if (comments[i].user_id == user) { %>
-                    <a href="/comment/delete/<%= comments[i]._id %>">삭제하기</a>
-                <% } %>
-            </p>
-                <% } %>
-            </div>
+            <% for (var i = 0; i < post.comments.length; i++) { %>   
+                <p><%= post.comments[i].text %></p>
+                <a href="/">답글 남기기</a>
+            <% } %>
         </div>
     </body>
 </html>
