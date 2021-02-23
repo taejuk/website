@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멘토 찾기</title>
+</head>
+<body>
+    <% for (var i = 0; i < mentors.length; i++) { %>
+        <p><%= mentors[i].nickname %> <a href="/apply/<%= mentors[i]._id %>">신청하기</a><a href="/profile/<%= mentors[i]._id %>">프로필보기</a></p>
+    <% } %>
+</body>
+</html>

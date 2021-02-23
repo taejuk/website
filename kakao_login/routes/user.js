@@ -1,9 +1,8 @@
 const express = require("express");
 const passport = require("passport");
-const Joi = require("@hapi/joi");
-const User = require("../models/login");
+const mongoose = require("mongoose");
+const User = require("../models/user");
 var LocalStrategy = require("passport-local").Strategy;
-const KakaoStrategy = require("passport-kakao").Strategy;
 var router = express.Router();
 
 passport.use(
@@ -38,6 +37,7 @@ passport.use(
     }
   )
 );
+
 passport.use(
   "local-signup",
   new LocalStrategy(
@@ -63,7 +63,36 @@ passport.use(
             req.flash("signupMessage", "비밀번호가 일치하지 않음.")
           );
         }
-        var user = new User({ id: id });
+        const nickname = req.body.nickname;
+        var checknickname = await User.findOne({ nickname: nickname });
+        if (checknickname) {
+          return done(
+            null,
+            false,
+            req.flash("signupMessage", "이미 존재하는 닉네임입니다.")
+          );
+        }
+        var belong = req.body.belong1 || req.body.belong2;
+        var communities = [
+          req.body.community1,
+          req.body.community2,
+          req.body.community3,
+        ];
+        var ids = [];
+        for (var i = 0; i < communities.length; i++) {
+          if (communities[i] != undefined) {
+            boards = await mongoose.connection.db.collection("board");
+            var board = await boards.findOne({ name: communities[i] });
+            ids.push(board._id);
+          }
+        }
+
+        var user = new User({
+          id: id,
+          nickname: nickname,
+          belong: belong,
+          communities: ids,
+        });
         await user.setPassword(password);
         user
           .save()
@@ -77,64 +106,14 @@ passport.use(
     }
   )
 );
-passport.use(
-  "kakao",
-  new KakaoStrategy(
-    {
-      clientID: "ed7f08e287c41fcc26080f6b33ddebe5",
-      callbackURL: "/auth/kakao/callback",
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      var schema = Joi.object().keys({
-        _id: Joi.object().required(),
-        id: Joi.string().required(),
-        name: Joi.string().required(),
-        provider: Joi.string().required(),
-        authToken: Joi.string().required(),
-      });
-      var user = new User({
-        id: String(profile.id),
-        name: profile.username,
-        provider: "kakao",
-        authToken: accessToken,
-      });
-      const result = schema.validate(user._doc);
-      if (result.error) {
-        done(result.error, null);
-      }
-      var checked = await User.findOne({ id: user.id });
-      if (checked) {
-        await User.updateOne(checked, { authToken: accessToken });
-        return done(null, user);
-      }
-      user.save(function (err) {
-        return done(err, user);
-      });
-      return done(null, user);
-    }
-  )
-);
-passport.serializeUser((user, done) => {
-  done(null, user);
+
+passport.serializeUser(function (user, done) {
+  done(null, user._id);
 });
 
-passport.deserializeUser((user, done) => {
+passport.deserializeUser(function (user, done) {
   done(null, user);
 });
-router.route("/auth/kakao").get(
-  passport.authenticate("kakao", {
-    successRedirect: "/profile",
-    failureRedirect: "/login",
-    failureFlash: true,
-  })
-);
-router.get(
-  "/auth/kakao/callback",
-  passport.authenticate("kakao", { failureRedirect: "/login" }),
-  (req, res) => {
-    res.redirect("/profile");
-  }
-);
 
 router.route("/login").get((req, res) => {
   res.render("login", { message: req.flash("loginMessage") });
@@ -142,7 +121,7 @@ router.route("/login").get((req, res) => {
 
 router.route("/login").post(
   passport.authenticate("local-login", {
-    successRedirect: "/profile",
+    successRedirect: "/home",
     failureRedirect: "/login",
     failureFlash: true,
   })
@@ -154,24 +133,66 @@ router.route("/signup").get((req, res) => {
 
 router.route("/signup").post(
   passport.authenticate("local-signup", {
-    successRedirect: "/profile",
+    successRedirect: "/setup",
     failureRedirect: "/signup",
     failureFlash: true,
   })
 );
-router.route("/profile").get((req, res) => {
+
+router.route("/setup").get(async (req, res) => {
+  user_id = req.user;
+  var user = await User.findById(user_id);
+  res.render("setup", { user: user });
+  return;
+});
+
+router.route("/setup").post(async (req, res) => {
+  user_id = req.user;
+  var user = await User.findById(user_id);
+  if (user.belong == "highschool") {
+    const goal = req.body.goal;
+    await User.updateOne({ _id: user_id }, { goal: goal });
+  } else if (user.belong == "college") {
+    const college = req.body.college;
+    await User.updateOne({ _id: user_id }, { college: college });
+  }
+  req.logout();
+  res.redirect("/success_signup");
+  return;
+});
+
+router.route("/success_signup").get((req, res) => {
+  res.render("success_signup");
+});
+router.route("/home").get((req, res) => {
+  if (!req.user) {
+    res.redirect("/login");
+    return;
+  }
+  res.render("home");
+  return;
+});
+router.route("/").get((req, res) => {
   if (!req.user) {
     res.redirect("/");
     return;
   }
 
   if (Array.isArray(req.user)) {
-    res.render("profile", { user: req.user[0]._doc });
+    res.render("home", { user: req.user[0]._doc });
   } else {
-    res.render("profile", { user: req.user });
+    res.render("home", { user: req.user });
   }
 });
+router.route("/profile/:user_id").get(async (req, res) => {
+  var user_id = req.params.user_id;
+  var user = await User.findOne({ _id: user_id }, { hashedPassword: false });
+  console.log(user);
+  res.render("profile", { user: user });
+  return;
+});
 router.route("/logout").get((req, res) => {
+  console.log("user: ", req.session);
   req.logout();
   res.redirect("/");
   return;

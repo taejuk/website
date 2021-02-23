@@ -113,19 +113,31 @@ router.route("/comment/:id").post(async (req, res) => {
   var text = req.body.comment;
   var user_id = req.user.id;
   const post = await Post.findOne({ board_id: board_id });
-  const length = post.comments.length;
   var comment = {
-    comment_id: length,
-    text: text,
+    board_id: board_id,
     user_id: user_id,
+    text: text,
   };
+
   await Post.updateOne(
     { board_id: board_id },
     { $push: { comments: comment } }
   );
-  res.render("post", { post: post, user: req.user.id });
+  res.redirect(`/postList/${board_id}`);
+  return;
 });
-router.route("/recomment/:id");
+router.route("/recomment/:board_id/:comment_id").post(async (req, res) => {
+  const text = req.body.recomment;
+  const board_id = req.params.board_id;
+  const comment_id = req.params.comment_id;
+  const recomment = {
+    comment_id: comment_id,
+    text: text,
+  };
+  var post = await Post.findOne({ board_id: board_id });
+
+  return;
+});
 /*
 router.route("/comment/delete/:id").get(async (req, res) => {
   var id = req.params.id;

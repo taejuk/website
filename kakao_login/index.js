@@ -15,8 +15,9 @@ var flash = require("connect-flash");
 
 var app = express();
 var router = express.Router();
-var loginrouter = require("./routes/login");
+var loginrouter = require("./routes/user");
 var boardrouter = require("./routes/board");
+var mentorrouter = require("./routes/mentor");
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -54,8 +55,9 @@ router.route("/").get((req, res) => {
 });
 
 app.use("/", router);
-app.use("/", loginrouter);
-app.use("/", boardrouter);
+app.use(loginrouter);
+app.use(boardrouter);
+app.use(mentorrouter);
 var errorHandler = expressErrorHandler({
   static: {
     404: "./public/404.html",

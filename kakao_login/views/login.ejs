@@ -6,15 +6,15 @@
   <body>
       <p style="color: red"><%= message %></p>
     <form action="/login" method="post">
-      <input type="text" name="id" placeholder="이메일을 입력해주세요." />
+      <input type="email" name="id" placeholder="이메일을 입력해주세요." />
       <input
         type="password"
         name="password"
         placeholder="비밀번호를 입력해주세요"
       />
       <input type="submit" value="로그인" />
+      <br>
+      <a href="/signup">회원가입하기</a>
     </form>
-    <br>
-    <a href="/auth/kakao">카카오로 로그인하기</a>
   </body>
 </html>

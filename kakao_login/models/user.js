@@ -2,13 +2,16 @@ var mongoose = require("mongoose");
 var bcrypt = require("bcrypt");
 
 const { Schema } = mongoose;
-
 const UserSchema = new Schema({
-  id: String,
-  hashedPassword: String,
-  name: String,
-  provider: String,
-  authToken: String,
+  id: { type: String },
+  hashedPassword: { type: String },
+  nickname: { type: String },
+  communities: [Schema.Types.ObjectId],
+  belong: { type: String, enum: ["highschool", "college"] },
+  college: { type: String },
+  goal: { type: String },
+  apply: [Schema.Types.ObjectId],
+  accept: [Schema.Types.ObjectId],
 });
 
 UserSchema.methods.setPassword = async function (password) {

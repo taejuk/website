@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 설정</title>
+</head>
+<body>
+    <% if (user.belong == "highschool") { %>
+    <form action="/setup" method="POST">
+        <input type="text" name="goal" placeholder="목표 대학을 입력해주세요." />
+    </form>
+    <% }  else { %>
+    <form action="/setup" method="POST">
+        <input type="text" name="college" placeholder = "현재 다니고 있는 대학을 입력해주세요.">
+    </form>
+    <% } %>
+</body>
+</html>
