@@ -72,7 +72,7 @@ passport.use(
             req.flash("signupMessage", "이미 존재하는 닉네임입니다.")
           );
         }
-        var belong = req.body.belong1 || req.body.belong2;
+        var belong = req.body.belong;
         var communities = [
           req.body.community1,
           req.body.community2,

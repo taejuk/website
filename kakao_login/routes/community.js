@@ -1,19 +1,30 @@
 const express = require("express");
 const Joi = require("@hapi/joi");
 const Post = require("../models/posts");
-const Comment = require("../models/comments");
+const User = require("../models/user");
 
 var router = express.Router();
 
-router.route("/createPost").get((req, res) => {
+router.route("/communityList").get((req, res) => {
   if (!req.user) {
     res.redirect("/login");
     return;
   }
-  res.render("createPost", { error: "" });
+  res.render("communities");
   return;
 });
-router.route("/createPost").post(async (req, res) => {
+
+router.route("/createPost/:name").get((req, res) => {
+  const community = req.params.name;
+  if (!req.user) {
+    res.redirect("/login");
+    return;
+  }
+  res.render("createPost", { error: "", community: community });
+  return;
+});
+router.route("/createPost/:name").post(async (req, res) => {
+  const community = req.params.name;
   if (!req.user) {
     res.redirect("/login");
     return;
@@ -35,9 +46,10 @@ router.route("/createPost").post(async (req, res) => {
       author: req.user.id,
       title: title,
       body: body,
+      community: community,
     });
     await post.save();
-    res.redirect("/postList");
+    res.redirect(`/listPost/${community}`);
     return;
   } else {
     lastId = lastId + lastPost[0].board_id;
@@ -47,50 +59,55 @@ router.route("/createPost").post(async (req, res) => {
       title: title,
       body: body,
       board_id: lastId + 1,
+      community: community,
     });
     await post.save();
-    res.redirect("/postList");
+    res.redirect(`/listPost/${community}`);
     return;
   }
 });
 
-router.route("/postList").get(async (req, res) => {
+router.route("/listPost/:name").get(async (req, res) => {
+  const community = req.params.name;
   if (!req.user) {
     res.redirect("/login");
     return;
   }
-  var posts = await Post.find().sort({ date: -1 });
-  res.render("postList", { posts: posts });
+  var posts = await Post.find({ community: community }).sort({ date: -1 });
+  res.render("postList", { posts: posts, community: community });
   return;
 });
 
-router.route("/postList/:id").get(async (req, res) => {
+router.route("/listPost/:name/:id").get(async (req, res) => {
   if (!req.user) {
     res.redirect("/login");
     return;
   }
   var board_id = req.params.id;
+  var community = req.params.name;
   const post = await Post.findOne({ board_id: board_id });
   if (!post) {
     res.status(404).render("error", { error: "게시물이 존재하지 않습니다." });
     return;
   }
-  res.render("post", { post: post, user: req.user.id });
+  res.render("post", { post: post, user: req.user.id, community: community });
 });
 
-router.route("/modifyPost/:id").get(async (req, res) => {
+router.route("/modifyPost/:name/:id").get(async (req, res) => {
   const board_id = req.params.id;
+  const community = req.params.name;
   const post = await Post.findOne({ board_id: board_id });
-  console.log("post:", post);
   if (!post) {
     res.status(404).render("error", { error: "게시물이 존재하지 않습니다." });
     return;
   }
-  res.render("modifyPost", { post: post });
+  res.render("modifyPost", { post: post, community: community });
+  return;
 });
 
-router.route("/modifyPost/:id").post(async (req, res) => {
+router.route("/modifyPost/:name/:id").post(async (req, res) => {
   const board_id = req.params.id;
+  const community = req.params.name;
   const post = await Post.findOne({ board_id: board_id });
   if (!req.user || req.user.id != post.author) {
     res.redirect("/login");
@@ -101,18 +118,19 @@ router.route("/modifyPost/:id").post(async (req, res) => {
     return;
   }
   await Post.updateOne(post, { title: req.body.title, body: req.body.body });
-  res.render("post", { post: post, user: req.user.id });
+  res.render("post", { post: post, user: req.user.id, community: community });
   return;
 });
-router.route("/comment/:id").post(async (req, res) => {
+router.route("/comment/:name/:id").post(async (req, res) => {
   if (!req.user) {
     res.redirect("/login");
     return;
   }
+  var community = req.params.name;
   var board_id = req.params.id;
   var text = req.body.comment;
   var user_id = req.user.id;
-  const post = await Post.findOne({ board_id: board_id });
+  //  const post = await Post.findOne({ board_id: board_id });
   var comment = {
     board_id: board_id,
     user_id: user_id,
@@ -123,21 +141,33 @@ router.route("/comment/:id").post(async (req, res) => {
     { board_id: board_id },
     { $push: { comments: comment } }
   );
-  res.redirect(`/postList/${board_id}`);
+  res.redirect(`/listPost/${community}/${board_id}`);
   return;
 });
-router.route("/recomment/:board_id/:comment_id").post(async (req, res) => {
-  const text = req.body.recomment;
-  const board_id = req.params.board_id;
-  const comment_id = req.params.comment_id;
-  const recomment = {
-    comment_id: comment_id,
-    text: text,
-  };
-  var post = await Post.findOne({ board_id: board_id });
-
-  return;
-});
+router
+  .route("/recomment/:name/:board_id/:comment_id")
+  .post(async (req, res) => {
+    const text = req.body.recomment;
+    const board_id = req.params.board_id;
+    const comment_id = req.params.comment_id;
+    const community = req.params.name;
+    var user = await User.findById(req.user);
+    const recomment = {
+      comment_id: comment_id,
+      text: text,
+      nickname: user.nickname,
+    };
+    (await Post.find({ board_id: board_id })).forEach(function (post) {
+      post.comments.forEach(async function (comment) {
+        if (comment._id == comment_id) {
+          comment.recomment.push(recomment);
+        }
+      });
+      post.save();
+    });
+    res.redirect(`/listPost/${community}/${board_id}`);
+    return;
+  });
 /*
 router.route("/comment/delete/:id").get(async (req, res) => {
   var id = req.params.id;

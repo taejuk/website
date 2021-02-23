@@ -3,8 +3,9 @@ var Comment = require("./comments");
 const { Schema } = mongoose;
 
 const PostSchema = new Schema({
-  author: String, //user의 nicknamedmfh 설정
+  author: String,
   board_id: { type: Number, default: 0 },
+  community: String,
   title: String,
   body: String,
   date: { type: Date, default: Date.now },

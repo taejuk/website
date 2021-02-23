@@ -8,12 +8,12 @@
             <div><%= post.title %></div>
             <div><%= post.body %></div>
             <% if (post.author == user) { %>
-                <a href="/modifyPost/<%= post.board_id %>">수정하기</a>
+                <a href="/modifyPost/<%= community %>/<%= post.board_id %>">수정하기</a>
             <% } %>
         </div>
-        <a href="/postList">뒤로 가기</a>
+        <a href="/listPost/<%= community %>">뒤로 가기</a>
         <br>
-        <form action="/comment/<%= post.board_id %>" method="POST">
+        <form action="/comment/<%= community %>/<%= post.board_id %>" method="POST">
             <div>
                 <input type="text" name="comment" placeholder="댓글을 입력하세요.">
             </div>
@@ -26,13 +26,17 @@
                 <div>댓글 보이기</div>
             <% for (var i = 0; i < Object.keys(post.comments).length; i++) { %>   
                 <p><%= post.comments[i].text %></p>
-                <form action="/recomment/<%= post.board_id %>/<%= post.comments[i]._id %>" method="POST">
+                <div>
+                    <% for (var j = 0; j < Object.keys(post.comments[i].recomment).length; j++) { %>
+                        <p><%= post.comments[i].recomment[j].text %></p>
+                    <% } %>
+                </div>
+                <form action="/recomment/<%= community %>/<%= post.board_id %>/<%= post.comments[i]._id %>" method="POST">
                     <div>
                         <input type="text" name="recomment" placeholder="답글을 입력하세요.">
                     </div>
                     <div><input type="submit" value="답글 남기기"></div>
                 </form>
-                
             <% } %>
             <% } %>
         </div>

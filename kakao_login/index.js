@@ -16,7 +16,7 @@ var flash = require("connect-flash");
 var app = express();
 var router = express.Router();
 var loginrouter = require("./routes/user");
-var boardrouter = require("./routes/board");
+var boardrouter = require("./routes/community");
 var mentorrouter = require("./routes/mentor");
 mongoose
   .connect(process.env.MONGO_URI, {

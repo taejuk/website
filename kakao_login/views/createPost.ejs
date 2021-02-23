@@ -5,7 +5,7 @@
     </head>
     <body>
         <div style="color: red"><%= error %></div>
-        <form action="/createPost" method="POST">
+        <form action="/createPost/<%= community %>" method="POST">
             <input type="text" name="title" placeholder="제목을 입력해주세요." autocomplete="off">
             <br>
             <textarea name="body" placeholder="내용을 입력해주세요." autocomplete="off"></textarea>

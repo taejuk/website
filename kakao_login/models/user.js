@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   goal: { type: String },
   apply: [Schema.Types.ObjectId],
   accept: [Schema.Types.ObjectId],
+  mypost: [Schema.Types.ObjectId],
 });
 
 UserSchema.methods.setPassword = async function (password) {
