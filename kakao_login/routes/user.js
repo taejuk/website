@@ -192,7 +192,6 @@ router.route("/profile/:user_id").get(async (req, res) => {
   return;
 });
 router.route("/logout").get((req, res) => {
-  console.log("user: ", req.session);
   req.logout();
   res.redirect("/");
   return;
